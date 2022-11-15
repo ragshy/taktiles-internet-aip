@@ -22,6 +22,7 @@ while True:
 
   img =cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
   h,w,c = img.shape
+  # Add determined values from Camera Calibration 
   focal_length = 1 * w
   cam_matrix = np.array([[focal_length, 0, h/2],
                          [0, focal_length, w/2],
