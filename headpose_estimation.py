@@ -56,9 +56,9 @@ while True:
         # ANGLES
       euler_angles, R, Q, Qx, Qy, Qz = cv2.RQDecomp3x3(Rot)
         #in degrees
-      x = euler_angles[0] * 360
-      y = euler_angles[1] * 360
-      z = euler_angles[2] * 360
+      x = euler_angles[0]*360
+      y = euler_angles[1]*360
+      z = euler_angles[2]*360
       print('Angles: ',x,y,z)
       if y < -2.5:
         text = "Left"
