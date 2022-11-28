@@ -1,7 +1,7 @@
 import numpy as np
 import cv2
 import glob
-#import yaml
+import yaml
 import os
 
 # https://www.youtube.com/watch?v=nWOx_xXxB70&ab_channel=SyakilaMazmin
@@ -24,13 +24,24 @@ objp[:,:2] = np.mgrid[0:corner_x,0:corner_y].T.reshape(-1,2)
 objpoints = [] # 3d point in real world space
 jpegpoints = [] # 2d points in image plane.
 
-source_path = "C:/Users/na86666/Desktop/taktiles-internet-aip/callibration_data" 
+source_path = 'C:\\Users\\na86666\\Desktop\\taktiles-internet-aip\\callibration_data' 
 print('images found :',len(os.listdir(source_path))) # count number of images
 
-images = [source_path + '/' + f for f in glob.glob('*.jpeg')]
+#pic = glob.glob(r'C:\Users\na86666\Desktop\taktiles-internet-aip\callibration_data\*.jpeg')
+
+# Problem found: Backslash as result through glob, Windows issue
+# Liste mit Directories zu jeweiligem Bild
+#images = ['r'+ source_path + '/' + f for f in glob.glob('*.jpeg')]  
+# use this instead:
+images = glob.glob(r'C:\Users\na86666\Desktop\taktiles-internet-aip\callibration_data\*.jpeg')
 print(images)
 counter = 0
 found = 0
+
+#bitte = cv2.imread('C:/Users/na86666/Desktop/taktiles-internet-aip/callibration_data/image1.jpeg')
+#cv2.imshow('bitte', bitte)
+#cv2.waitKey(1000)
+
 for fname in images: # here, 10 can be changed to whatever number you like to choose
     jpeg = cv2.imread(fname) # capture frame by frame
     cv2.imshow('jpeg', jpeg)
@@ -52,8 +63,7 @@ for fname in images: # here, 10 can be changed to whatever number you like to ch
         cv2.imshow('chessboard', jpeg)
         cv2.waitKey(500)
         # if you want to save images with dtected corners
-        counter = counter + 1
-        print(counter)
+      
 print("Number of images used for calibration: ", found)
 
  # when everything done, release the capture
