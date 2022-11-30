@@ -25,7 +25,7 @@ objpoints = [] # 3d point in real world space
 jpegpoints = [] # 2d points in image plane.
 
 source_path = 'C:\\Users\\na86666\\Desktop\\taktiles-internet-aip\\callibration_data' 
-print('images found :',len(os.listdir(source_path))) # count number of images
+#print('images found :',len(os.listdir(source_path))) # count number of images
 
 #pic = glob.glob(r'C:\Users\na86666\Desktop\taktiles-internet-aip\callibration_data\*.jpeg')
 
@@ -34,19 +34,15 @@ print('images found :',len(os.listdir(source_path))) # count number of images
 #images = ['r'+ source_path + '/' + f for f in glob.glob('*.jpeg')]  
 # use this instead:
 images = glob.glob(r'C:\Users\na86666\Desktop\taktiles-internet-aip\callibration_data\*.jpeg')
-print(images)
-counter = 0
+#print(images)
 found = 0
-
-#bitte = cv2.imread('C:/Users/na86666/Desktop/taktiles-internet-aip/callibration_data/image1.jpeg')
-#cv2.imshow('bitte', bitte)
-#cv2.waitKey(1000)
+pat_directory = r'C:\Users\na86666\Desktop\taktiles-internet-aip\Patterned_images'
 
 for fname in images: # here, 10 can be changed to whatever number you like to choose
     jpeg = cv2.imread(fname) # capture frame by frame
     cv2.imshow('jpeg', jpeg)
-    cv2.waitKey(500)
-    print(fname)
+    cv2.waitKey(50)
+    #print(fname)
     gray = cv2.cvtColor(jpeg, cv2.COLOR_BGRA2GRAY)
     
     # find the chess noard corners
@@ -61,47 +57,50 @@ for fname in images: # here, 10 can be changed to whatever number you like to ch
         jpeg = cv2.drawChessboardCorners(jpeg, (corner_x,corner_y), corners2, ret)
         found += 1
         cv2.imshow('chessboard', jpeg)
-        cv2.waitKey(500)
-        # if you want to save images with dtected corners
-      
+        cv2.waitKey(50)
+        cv2.imwrite(str(pat_directory)+'\pat_img'+str(found)+'.jpeg', jpeg)
 print("Number of images used for calibration: ", found)
 
  # when everything done, release the capture
 #cap.release()
-#cv2.destroyAllWindows()
+cv2.destroyAllWindows()
 
 #calibration
 ret, mtx, dist, rvecs, tvecs = cv2.calibrateCamera(objpoints, jpegpoints, gray.shape[::-1], None, None)
 
-# transforms the matrix distortion coefficients to writeable lists
-data= {'camera_matrix': np.asarray(mtx).tolist(), 'dist_coeff': np.asarray(dist).tolist()}
-print(mtx)
-print(dist)
-# and save it to a file
-with open("calibration_matrix.yaml", "w")as f:
-    yaml.dump(data, f)
-
+h, w = jpeg.shape[:2]
+newcameramtx, roi=cv2.getOptimalNewCameraMatrix(mtx, dist , (w,h), 1, (w,h))
 #undistort image
-
+undis_directory = r'C:\Users\na86666\Desktop\taktiles-internet-aip\Undistorted_images'
+undis_cropped_directory = r'C:\Users\na86666\Desktop\taktiles-internet-aip\Undistorted_cropped_images'
 for fname in images: # here, 10 can be changed to whatever number you like to choose
      #print(fname)
      jpeg = cv2.imread(fname) # Capture frame-by-frame
      #cv2.imshow('jpeg', jpeg)
      #cv2.waitkey(500)
-     h, w = jpeg.shape[:2]
-     
-     newcameramtx, roi=cv2.getOptimalNewCameraMatrix(mtx, dist , (w,h), 1, (w,h))
-     #print(newcameramtx)
+     found += 1
      #undistort
      dst = cv2.undistort(jpeg, mtx, dist, None, newcameramtx)
-     cv2.imshow('undistort', dst)
+     cv2.imshow('undistorted', dst)
      cv2.waitKey(500)
-     
+     cv2.imwrite(str(undis_directory)+'\imdist_img'+str(found)+'.jpeg', jpeg)
+
      # crop the image
      x, y, w, h = roi
      dst = dst[y:y+h, x:x+w]
      #cv2.imshow('calibration.png',dst)
-     cv2.imshow('undistort2', dst)
-     cv2.waitKey(0)
+     cv2.imshow('undistort_cropped', dst)
+     cv2.waitKey(500)
+     cv2.imwrite(str(undis_cropped_directory)+'\imdist_cropped_img'+str(found)+'.jpeg', jpeg)
      
 cv2.destroyAllWindows() 
+
+# transforms the matrix distortion coefficients to writeable lists
+data= {'camera_matrix': np.asarray(mtx).tolist(), 'new_camera_matrix': np.asarray(newcameramtx).tolist(), 'dist_coeff': np.asarray(dist).tolist()}
+print("Camera Matrix: ",mtx)
+print("Distortion Coefficients: ", dist)
+print("Optimized Camera Matrix: ", newcameramtx)
+# and save it to a file
+with open("calibration_matrix.yaml", "w")as f:
+    yaml.dump(data, f)
+
