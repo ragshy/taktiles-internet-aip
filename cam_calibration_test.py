@@ -73,6 +73,7 @@ newcameramtx, roi=cv2.getOptimalNewCameraMatrix(mtx, dist , (w,h), 1, (w,h))
 #undistort image
 undis_directory = r'C:\Users\na86666\Desktop\taktiles-internet-aip\Undistorted_images'
 undis_cropped_directory = r'C:\Users\na86666\Desktop\taktiles-internet-aip\Undistorted_cropped_images'
+found = 0
 for fname in images: # here, 10 can be changed to whatever number you like to choose
      #print(fname)
      jpeg = cv2.imread(fname) # Capture frame-by-frame
@@ -83,7 +84,7 @@ for fname in images: # here, 10 can be changed to whatever number you like to ch
      dst = cv2.undistort(jpeg, mtx, dist, None, newcameramtx)
      cv2.imshow('undistorted', dst)
      cv2.waitKey(500)
-     cv2.imwrite(str(undis_directory)+'\imdist_img'+str(found)+'.jpeg', jpeg)
+     cv2.imwrite(str(undis_directory)+'\imdist_img'+str(found)+'.jpeg', dst)
 
      # crop the image
      x, y, w, h = roi
@@ -91,7 +92,7 @@ for fname in images: # here, 10 can be changed to whatever number you like to ch
      #cv2.imshow('calibration.png',dst)
      cv2.imshow('undistort_cropped', dst)
      cv2.waitKey(500)
-     cv2.imwrite(str(undis_cropped_directory)+'\imdist_cropped_img'+str(found)+'.jpeg', jpeg)
+     cv2.imwrite(str(undis_cropped_directory)+'\imdist_cropped_img'+str(found)+'.jpeg', dst)
      
 cv2.destroyAllWindows() 
 
