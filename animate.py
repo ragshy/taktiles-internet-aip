@@ -9,10 +9,33 @@ import mediapipe as mp
 
 from reference_world import *
 
+
+# Render
+import pygame
+
+pygame.init()
+BLACK = ( 0, 0, 0)
+WHITE = ( 255, 255, 255)
+GREEN = ( 0, 255, 0)
+RED = ( 255, 0, 0)
+width = 700
+height = 700
+size = (width, height)
+screen = pygame.display.set_mode(size)
+pygame.display.set_caption("Position Render")
+clock = pygame.time.Clock()
+
+
+
+
+
 mp_face_mesh = mp.solutions.face_mesh
 face_mesh = mp_face_mesh.FaceMesh(min_detection_confidence=0.5,min_tracking_confidence=0.5)
 mp_drawing = mp.solutions.drawing_utils
 drawing_spec = mp_drawing.DrawingSpec(thickness=1,circle_radius=1)
+
+
+
 
 def process(cap):
   ret,img = cap.read()
@@ -25,7 +48,10 @@ def process(cap):
     for face_landmarks in results.multi_face_landmarks:
       # get only relevant landmarks
       head2d = ref2dHeadImagePoints(face_landmarks.landmark,w,h)
-      print(head2d)
+      distance = face_landmarks.landmark[1].z*w
+      print('s'*50)
+      print(distance)
+      #print(head2d)
       # solve PnP
       success, rot_vec, trans_vec = cv2.solvePnP(ref3DHeadModel(),head2d,cam_matrix,distortion)
       
@@ -89,6 +115,18 @@ def update(i,x,phi_angles,theta_angles):
   ax3.plot(x,theta_angles)
   plt.yticks(np.arange(-75, 75+1, 7.5))
 
+  # Render
+  screen.fill(WHITE)
+  pygame.draw.rect(screen, BLACK, [width/2-50/2, height-25, 50, 25],0)
+  pygame.draw.circle(screen, BLACK, [width/2,height/2], 10)
+  line_length = 100
+  start_pos = [width/2,height/2]
+  end_pos = [start_pos[0]+line_length*math.sin(math.radians(phi_angle)),start_pos[1]+line_length*math.cos(math.radians(phi_angle))]
+  print('END'*23,end_pos)
+  pygame.draw.line(screen,RED,start_pos=start_pos,end_pos=end_pos)
+  pygame.display.update()
+  clock.tick(60)
+
 
 #create two subplots and set properties
 fig, axs = plt.subplots(3,1,figsize=(16,9), gridspec_kw={'height_ratios': [3, 1,1]})
@@ -115,8 +153,12 @@ ani = FuncAnimation(fig, update,fargs=(x,phi_angles,theta_angles), interval=1)
 def close(event):
     if event.key == 'q':
         plt.close(event.canvas.figure)
+    for event in pygame.event.get(): # User did something
+      if event.type == pygame.QUIT: # If user clicked close
+        pygame.quit()
 cid = plt.gcf().canvas.mpl_connect("key_press_event", close)
 plt.show()
+  
 
 '''
 Resolution:
@@ -129,5 +171,7 @@ to 15 decimals
 
 print(np.nextafter(-57.999999999999986,63.0))
 print(121/0.000000000000007)
+
+pygame.quit()
 
 # elevation degree
