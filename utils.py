@@ -135,7 +135,7 @@ class Tracker():
 
       return img,(pitch,yaw,roll),p1
     else:
-      return img,(0,0,0)
+      return img,(0,0,0),0
 
   def locate(self,p1,p2):
     x,y =0,0
