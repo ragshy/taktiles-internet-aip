@@ -28,7 +28,7 @@ while True:
   img.flags.writeable = False
 
   # estimate pose
-  img,(pitch,yaw,roll)=tracker.headpose(img)
+  img,(pitch,yaw,roll),_=tracker.headpose(img)
   # current seconds elapsed
   timestamp = round(time.time() - start, 2)
   print('*'*34)
