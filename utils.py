@@ -121,6 +121,14 @@ class Tracker():
         roll = -math.degrees(math.asin(math.sin(roll)))
         yaw = math.degrees(math.asin(math.sin(yaw)))
 
+        # project nose
+        noseEndPoints3D = np.array([[0, 0, 1000.0]], dtype=np.float64)
+        noseEndPoint2D, jacobian = cv2.projectPoints(noseEndPoints3D, rot_vec, trans_vec, self.camera_mat, self.distortion)
+
+        # draw nose line 
+        p1 = (int(head2d[0, 0]), int(head2d[0, 1]))
+        p2 = (int(noseEndPoint2D[0, 0, 0]), int(noseEndPoint2D[0, 0, 1]))
+        cv2.line(img, p1, p2, (110, 220, 0),thickness=2, lineType=cv2.LINE_AA)
       # tracked image
       self.mp_drawing.draw_landmarks(image=img,
                               landmark_list=face_landmarks,
@@ -128,7 +136,7 @@ class Tracker():
                               landmark_drawing_spec = self.drawing_spec,
                               connection_drawing_spec = self.drawing_spec)
 
-      return img,(pitch,yaw,roll)
+      return img,(pitch,yaw,roll,p1)
     else:
-      return img,(0,0,0)
+      return img,(0,0,0,0)
 
