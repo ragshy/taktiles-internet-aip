@@ -8,7 +8,7 @@ from matplotlib.animation import FuncAnimation
 import mediapipe as mp
 
 from reference_world import *
-
+from utils import *
 
 # Render
 import pygame
@@ -28,12 +28,10 @@ clock = pygame.time.Clock()
 
 
 
-
 mp_face_mesh = mp.solutions.face_mesh
 face_mesh = mp_face_mesh.FaceMesh(min_detection_confidence=0.5,min_tracking_confidence=0.5)
 mp_drawing = mp.solutions.drawing_utils
 drawing_spec = mp_drawing.DrawingSpec(thickness=1,circle_radius=1)
-
 
 
 
@@ -48,23 +46,23 @@ def process(cap):
     for face_landmarks in results.multi_face_landmarks:
       # get only relevant landmarks
       head2d = ref2dHeadImagePoints(face_landmarks.landmark,w,h)
-      distance = face_landmarks.landmark[1].z*w
-      print('s'*50)
-      print(distance)
+      #depth = face_landmarks.landmark[1].z*w
+      distance = distance_to_camera(8,focal_length,head2d[3,0]-head2d[2,0])
+      print('d'*50)
+      print('Distance in cm: ',distance)
       #print(head2d)
       # solve PnP
       success, rot_vec, trans_vec = cv2.solvePnP(ref3DHeadModel(),head2d,cam_matrix,distortion)
       
       # angles
       rmat, jac = cv2.Rodrigues(rot_vec)
-      euler_angles, R, Q, Qx, Qy, Qz = cv2.RQDecomp3x3(rmat)
-      theta_angle = euler_angles[2]
-      x = np.arctan2(Qx[2][1], Qx[2][2])*180/math.pi
-      phi_angle = np.arctan2(-Qy[2][0], np.sqrt((Qy[2][1] * Qy[2][1] ) + (Qy[2][2] * Qy[2][2])))*180/math.pi
-      theta_angle = np.arctan2(Qz[0][0], Qz[1][0])*180/math.pi
-      print('+'*34)
-      print(x,phi_angle,theta_angle)
-      
+      proj_mat = np.hstack((rmat, trans_vec))
+      eulerAngles = cv2.decomposeProjectionMatrix(proj_mat)[6] 
+      pitch, yaw, roll = [math.radians(_) for _ in eulerAngles]
+      pitch = math.degrees(math.asin(math.sin(pitch)))
+      roll = -math.degrees(math.asin(math.sin(roll)))
+      yaw = math.degrees(math.asin(math.sin(yaw)))
+
       # project nose
       noseEndPoints3D = np.array([[0, 0, 1000.0]], dtype=np.float64)
       noseEndPoint2D, jacobian = cv2.projectPoints(noseEndPoints3D, rot_vec, trans_vec, cam_matrix, distortion)
@@ -74,7 +72,12 @@ def process(cap):
       p2 = (int(noseEndPoint2D[0, 0, 0]), int(noseEndPoint2D[0, 0, 1]))
       cv2.line(img, p1, p2, (110, 220, 0),thickness=2, lineType=cv2.LINE_AA)
       # print tilt
-      cv2.putText(img,str(phi_angle),org=(50,50),fontFace=cv2.FONT_HERSHEY_SIMPLEX,fontScale=1,color=(255,0,0),thickness=2)
+      cv2.putText(img,'Pitch: '+str(pitch),org=(50,50),fontFace=cv2.FONT_HERSHEY_SIMPLEX,fontScale=1,color=(255,0,0),thickness=2)
+      cv2.putText(img,'Yaw: '+str(yaw),org=(50,100),fontFace=cv2.FONT_HERSHEY_SIMPLEX,fontScale=1,color=(255,0,0),thickness=2)
+      cv2.putText(img,'Roll: '+str(roll),org=(50,150),fontFace=cv2.FONT_HERSHEY_SIMPLEX,fontScale=1,color=(255,0,0),thickness=2)
+      #
+      # print distance
+      cv2.putText(img,'Distance: '+str(distance),org=(650,50),fontFace=cv2.FONT_HERSHEY_SIMPLEX,fontScale=1,color=(255,0,0),thickness=2)
     
     mp_drawing.draw_landmarks(image=img,
                               landmark_list=face_landmarks,
@@ -82,7 +85,7 @@ def process(cap):
                               landmark_drawing_spec = drawing_spec,
                               connection_drawing_spec = drawing_spec)
   img = cv2.cvtColor(img,cv2.COLOR_RGB2BGR)
-  return cv2.cvtColor(img,cv2.COLOR_BGR2RGB),phi_angle,theta_angle
+  return cv2.cvtColor(img,cv2.COLOR_BGR2RGB),pitch,yaw,roll
 
 # Video Capture
 cap = cv2.VideoCapture(0)
@@ -97,23 +100,32 @@ distortion = np.zeros((4,1))
 distortion = np.array([0.1525,-1.022,-0.00287,0.000317,1.172])
 
 # Update data
-def update(i,x,phi_angles,theta_angles):
-  (img,phi_angle,theta_angle) = process(cap)
-  im1.set_data(img)
+def update(i,x,yaws,pitches,rolls):
+  img,pitch,yaw,roll = process(cap)
+  print('*'*34)
+  print('Pitch, Roll, Yaw: ',pitch,roll,yaw)
+
+  ax1.imshow(img)
   x.append(round(time.time() - start, 2))
-  phi_angles.append(phi_angle)
-  theta_angles.append(theta_angle)
-  print(x[-1],phi_angles[-1],theta_angles[-1])
+  yaws.append(yaw)
+  pitches.append(pitch)
+  rolls.append(roll)
+
   x = x[-50:]
-  phi_angles = phi_angles[-50:]
-  theta_angles = theta_angles[-50:]
+  yaws = yaws[-50:]
+  pitches = pitches[-50:]
+  rolls = rolls[-50:]
+
     # Draw x and y lists
   ax2.clear()
-  ax2.plot(x,phi_angles)
+  ax2.plot(x,yaws)
   ax2.set_ylim([-75, 75])
   ax3.clear()
-  ax3.plot(x,theta_angles)
+  ax3.plot(x,pitches)
   plt.yticks(np.arange(-75, 75+1, 7.5))
+  ax4.clear()
+  ax4.plot(x,rolls)
+  ax4.set_ylim([-75, 75])
 
   # Render
   screen.fill(WHITE)
@@ -121,34 +133,33 @@ def update(i,x,phi_angles,theta_angles):
   pygame.draw.circle(screen, BLACK, [width/2,height/2], 10)
   line_length = 100
   start_pos = [width/2,height/2]
-  end_pos = [start_pos[0]+line_length*math.sin(math.radians(phi_angle)),start_pos[1]+line_length*math.cos(math.radians(phi_angle))]
-  print('END'*23,end_pos)
+  end_pos = [start_pos[0]+line_length*math.sin(math.radians(yaw)),start_pos[1]+line_length*math.cos(math.radians(yaw))]
   pygame.draw.line(screen,RED,start_pos=start_pos,end_pos=end_pos)
   pygame.display.update()
   clock.tick(60)
 
 
 #create two subplots and set properties
-fig, axs = plt.subplots(3,1,figsize=(16,9), gridspec_kw={'height_ratios': [3, 1,1]})
+fig, axs = plt.subplots(4,1,figsize=(16,9), gridspec_kw={'height_ratios': [3, 1,1,1]})
 ax1 = axs[0]
 ax1.axis('off')
 ax2 = axs[1]
 ax3 = axs[2]
+ax4 = axs[3]
 
+#create plots
+img, _,_,_ = process(cap)
+#im1 = ax1.imshow(img)
 
-#create two image plots
-img, _,_ = process(cap)
-im1 = ax1.imshow(img)
+x,yaws,pitches,rolls = [],[],[],[]
 
-x = []
-phi_angles = []
-theta_angles = []
-line, = ax2.plot(x, phi_angles)
-line2, = ax3.plot(x, theta_angles)
+#line, = ax2.plot(x, yaws)
+#line2, = ax3.plot(x, pitches)
+#line3, = ax4.plot(x, rolls)
     
 # Animation
 start = time.time()
-ani = FuncAnimation(fig, update,fargs=(x,phi_angles,theta_angles), interval=1)
+ani = FuncAnimation(fig, update,fargs=(x,yaws,pitches,rolls), interval=1)
 
 def close(event):
     if event.key == 'q':
@@ -158,6 +169,11 @@ def close(event):
         pygame.quit()
 cid = plt.gcf().canvas.mpl_connect("key_press_event", close)
 plt.show()
+
+
+pygame.quit()
+
+# elevation degree
   
 
 '''
@@ -168,10 +184,3 @@ to 15 decimals
 
 -> #angles = 121/0.000000000000007 = 17_285_714_285_714_286 ~= 17 billarden
 '''
-
-print(np.nextafter(-57.999999999999986,63.0))
-print(121/0.000000000000007)
-
-pygame.quit()
-
-# elevation degree
