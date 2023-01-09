@@ -94,11 +94,8 @@ class Tracker():
     self.mp_drawing = mp.solutions.drawing_utils
     self.drawing_spec = self.mp_drawing.DrawingSpec(thickness=1,circle_radius=1)
 
-    self.focal_length = 1553.0
-    self.camera_mat = np.array([[self.focal_length, 0, 986],
-                          [0, self.focal_length, 499],
-                          [0, 0, 1]])
-    self.distortion = np.array([0.1525,-1.022,-0.00287,0.000317,1.172])
+    self.camera_mat = camera_mat
+    self.distortion = distortion_mat
 
   def headpose(self,img):
     h,w,c = img.shape
@@ -126,7 +123,7 @@ class Tracker():
         noseEndPoint2D, jacobian = cv2.projectPoints(noseEndPoints3D, rot_vec, trans_vec, self.camera_mat, self.distortion)
 
         # draw nose line 
-        p1 = (int(head2d[0, 0]), int(head2d[0, 1]))
+        p1 = (int(head2d[0, 0]), int(head2d[0, 1])) # nose in img
         p2 = (int(noseEndPoint2D[0, 0, 0]), int(noseEndPoint2D[0, 0, 1]))
         cv2.line(img, p1, p2, (110, 220, 0),thickness=2, lineType=cv2.LINE_AA)
       # tracked image
@@ -136,7 +133,11 @@ class Tracker():
                               landmark_drawing_spec = self.drawing_spec,
                               connection_drawing_spec = self.drawing_spec)
 
-      return img,(pitch,yaw,roll,p1)
+      return img,(pitch,yaw,roll),p1
     else:
-      return img,(0,0,0,0)
+      return img,(0,0,0)
+
+  def locate(self,p1,p2):
+    x,y =0,0
+    return (x,y)
 
