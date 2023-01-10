@@ -6,8 +6,11 @@ def stereo_calibrate(mtx1, dist1, mtx2, dist2, frames_folder):
     #read the synched frames
     images_names = glob.glob(frames_folder)
     images_names = sorted(images_names)
+    print(images_names)
     c1_images_names = images_names[:len(images_names)//2]
     c2_images_names = images_names[len(images_names)//2:]
+    print(c1_images_names)
+    print(c2_images_names)
  
     c1_images = []
     c2_images = []
