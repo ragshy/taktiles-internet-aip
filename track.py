@@ -9,7 +9,7 @@ from utils import *
 f = open('data.csv', 'w',encoding='UTF8', newline='')
 # create the csv writer
 writer = csv.writer(f)
-header = ['Time','Pitch','Roll','Yaw']
+header = ['Time','Pitch','Roll','Yaw','X-Pos','Y-Pos','Z-Pos']
 writer.writerow(header)
 
 
@@ -32,8 +32,12 @@ dist1 = np.array([0.1525,-1.022,-0.00287,0.000317,1.172])
 tracker1 = Tracker(camera_mat=cam1,distortion_mat=dist1)
 
 # Stereo Calibration
-# R =
-# T =
+R = np.array([[ 0.99984487, -0.00711347 , 0.01611293],
+ [ 0.00717558 , 0.99996704, -0.00379977],
+ [-0.01608537 , 0.0039148,   0.99986296]])
+T = np.array([[ 4.23830745],
+ [ 0.62222669],
+ [-1.61017813]])
 
 '''Main Loop'''
 #Start time
@@ -56,8 +60,12 @@ while True:
     cv2.imshow('Cam 1', frame1)
 
     # Triangulate to find 3D coordinates of nose
-    # x,y,z = triangulate(nose0,nose1,cam0,cam1,R,T)
-
+    if nose0==0 or nose1==0:
+      x,y,z = 0,0,0
+    else:
+      p3d = triangulate(nose0,nose1,cam0,cam1,R,T)
+      print(p3d)
+      x,y,z = p3d[0],p3d[1],p3d[2]
     # Save and log data
     # current seconds elapsed
     timestamp = round(time.time() - start, 2)
@@ -66,7 +74,7 @@ while True:
     print('X,Y,Z Coordinates: ',x,y,z)
     print('*'*34)
     # write a row to the csv file
-    writer.writerow([timestamp,pitch,roll,yaw])
+    writer.writerow([timestamp,pitch,roll,yaw,x,y,z])
 
     # Press Q to stop loop
     if cv2.waitKey(1) & 0xFF == ord('q'):
