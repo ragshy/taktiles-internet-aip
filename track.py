@@ -15,7 +15,7 @@ writer.writerow(header)
 
 '''Camera Setup'''
 # First (HELP) Camera
-cap0 = cv2.VideoCapture(0)
+cap0 = cv2.VideoCapture(1)
 focal_length = 1553.0
 cam0 = np.array([[focal_length, 0, 986],
                   [0, focal_length, 499],
@@ -24,7 +24,7 @@ dist0 = np.array([0.1525,-1.022,-0.00287,0.000317,1.172])
 tracker0 = Tracker(camera_mat=cam0,distortion_mat=dist0)
 
 # Second (MAIN) Camera
-cap1 = cv2.VideoCapture(1)
+cap1 = cv2.VideoCapture(2)
 cam1 = np.array([[focal_length, 0, 986],
                   [0, focal_length, 499],
                   [0, 0, 1]])

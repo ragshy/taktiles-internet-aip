@@ -1,13 +1,13 @@
 import cv2
 
-cam0 = cv2.VideoCapture(0)
-cam1 = cv2.VideoCapture(1)
+cam0 = cv2.VideoCapture(1)
+cam1 = cv2.VideoCapture(2)
 
 cv2.namedWindow("cam0")
 cv2.namedWindow("cam1")
 
 img0_counter = 0
-img1_counter = 1
+img1_counter = 5
 
 while True:
     ret0, frame0 = cam0.read()
@@ -33,8 +33,8 @@ while True:
         cv2.imwrite(str(img1_counter)+'.png', frame1)
         #print("{} written!".format(img0_name))
         #print("{} written!".format(img1_name))
-        img0_counter += 2
-        img1_counter += 2
+        img0_counter += 1
+        img1_counter += 1
 
 
 
