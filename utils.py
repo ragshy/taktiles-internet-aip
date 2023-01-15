@@ -127,6 +127,7 @@ class Tracker():
         p1 = (int(head2d[0, 0]), int(head2d[0, 1])) # nose in img
         p2 = (int(noseEndPoint2D[0, 0, 0]), int(noseEndPoint2D[0, 0, 1]))
         cv2.line(img, p1, p2, (110, 220, 0),thickness=2, lineType=cv2.LINE_AA)
+        
       # tracked image
       self.mp_drawing.draw_landmarks(image=img,
                               landmark_list=face_landmarks,
