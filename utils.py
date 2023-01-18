@@ -1,4 +1,3 @@
-import pygame
 import math
 import time
 import cv2
@@ -6,6 +5,8 @@ import numpy as np
 from scipy import linalg
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
+import ursina as US
+from ursina.prefabs.first_person_controller import FirstPersonController
 
 import mediapipe as mp
 
@@ -17,19 +18,35 @@ def distance_to_camera(irl_width,focal_length,image_width):
   return (irl_width*focal_length)/image_width
 
 class Renderer():
-  class BirdsEye():
-    def __init__(self,width=700,height=700) -> None:
-      pygame.init()
-      self.BLACK = ( 0, 0, 0)
-      self.WHITE = ( 255, 255, 255)
-      self.GREEN = ( 0, 255, 0)
-      self.RED = ( 255, 0, 0)
-      self.width = width
-      self.height = height
-      self.size = (self.width, self.height)
-      self.screen = pygame.display.set_mode(self.size)
-      pygame.display.set_caption("Position Render")
-      self.clock = pygame.time.Clock()
+  class Render3D():
+    def __init__(self) -> None:
+
+      self.app = US.Ursina()
+
+      US.window.title = 'Room'
+      US.window.borderless = False
+      US.window.exit_button.visible = True
+      US.window.fps_counter.enabled = False
+
+      US.mouse.visible = False
+      US.mouse.locked = True
+
+      self.ground = US.Entity(model="plane", color = US.color.white, scale=(100, 1, 100), collider="box", position=(0, 0, 0))
+      self.cube = US.Entity(model='cube',position = (0,2,2), color = US.color.red)
+      self.player = FirstPersonController()
+      
+    def update(self):
+      # Render
+      self.cube.rotation_y += time.dt * 10                 
+      if US.held_keys['up arrow']:                           
+        self.player.world_position += (0, 0, time.dt*10)           
+      if US.held_keys['down arrow']:                            
+        self.player.world_position -= (0, 0, time.dt*10) 
+      if US.held_keys['left arrow']:
+        self.player.world_rotation_y -=time.dt*50
+      if US.held_keys['right arrow']:
+        self.player.world_rotation_y +=time.dt*50
+      return None
 
   class LiveHeadPosePlots():
     def __init__(self,start) -> None:
@@ -67,26 +84,6 @@ class Renderer():
     def start_plots(self):
       ani = FuncAnimation(self.fig, self.update_plots,fargs=(self.x,self.yaws,self.pitches,self.rolls), interval=1)
 
-
-  def update_pygame(self,pos,yaw):
-    # Render
-    self.screen.fill(self.WHITE)
-    pygame.draw.rect(self.screen, self.BLACK, [self.width/2-50/2, self.height-25, 50, 25],0) #camera
-    pygame.draw.circle(self.screen, self.BLACK, [self.width/2,self.height/2], 10)
-    line_length = 100
-    start_pos = [self.width/2,self.height/2]
-    end_pos = [start_pos[0]+line_length*math.sin(math.radians(yaw)),start_pos[1]+line_length*math.cos(math.radians(yaw))]
-    pygame.draw.line(self.screen,self.RED,start_pos=start_pos,end_pos=end_pos)
-    pygame.display.update()
-    self.clock.tick(60)
-  
-  def close(self):
-    for event in pygame.event.get(): # User did something
-      if event.type == pygame.QUIT: # If user clicked close
-        pygame.quit()
-    if event.key == 'q':
-        plt.close(event.canvas.figure)
-        pygame.quit()
 
 class Tracker():
   def __init__(self,camera_mat=None,distortion_mat=None) -> None:
@@ -164,6 +161,8 @@ def triangulate(uvs1,uvs2,cam1_mat,cam2_mat,R,T):
     P2 = cam2_mat @ RT2 #projection matrix for C2
 
     p3d = DLT(P1, P2, uvs1, uvs2)
-    print('Triangulated point: ', p3d)
+    #print('Triangulated point: ', p3d)
     return p3d
 
+def relative_position(p1,p2):
+  return p1+p2
