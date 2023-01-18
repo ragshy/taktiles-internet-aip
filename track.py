@@ -8,6 +8,7 @@ import cv2
 import csv
 import argparse
 import numpy as np
+import datetime
 
 from utils import *
 from TCPConnection import Server,Client
@@ -17,14 +18,14 @@ parser = argparse.ArgumentParser(description='A Person Tracking system')
 parser.add_argument("-s", "--server", help = "Run script as Server or Client", action='store_true')
 args = vars(parser.parse_args())
 
-IP_ADDRESS = '10.181.162.16'
+IP_ADDRESS = '172.20.10.2'
 print('*'*34)
 print(f'The Program is starting... The IP Address is: {IP_ADDRESS}')
 print('*'*34)
 
 '''Camera Setup'''
 # First (HELP) Camera
-cap0 = cv2.VideoCapture(0)
+cap0 = cv2.VideoCapture(1)
 focal_length = 1553.0
 cam0 = np.array([[focal_length, 0, 986],
                   [0, focal_length, 499],
@@ -33,7 +34,7 @@ dist0 = np.array([0.1525,-1.022,-0.00287,0.000317,1.172])
 tracker0 = Tracker(camera_mat=cam0,distortion_mat=dist0)
 
 # Second (MAIN) Camera
-cap1 = cv2.VideoCapture(0)
+cap1 = cv2.VideoCapture(2)
 cam1 = np.array([[focal_length, 0, 986],
                   [0, focal_length, 499],
                   [0, 0, 1]])
@@ -41,13 +42,20 @@ dist1 = np.array([0.1525,-1.022,-0.00287,0.000317,1.172])
 tracker1 = Tracker(camera_mat=cam1,distortion_mat=dist1)
 
 # Stereo Calibration
-R = np.array([[ 0.99984487, -0.00711347 , 0.01611293],
- [ 0.00717558 , 0.99996704, -0.00379977],
- [-0.01608537 , 0.0039148,   0.99986296]])
-T = np.array([[ 4.23830745],
- [ 0.62222669],
- [-1.61017813]])
-
+R=  np.array([[ 9.99958646e-01, -6.68838720e-04,  9.06967305e-03],
+ [ 1.23416009e-03,  9.98046116e-01, -6.24694146e-02],
+ [-9.01017000e-03,  6.24780247e-02,  9.98005668e-01]])
+T=np.array([[8.55364546],
+ [0.25676638],
+ [0.68013493]])
+'''
+R =  np.array([[ 0.999698,   -0.01712592,  0.01762426],
+ [ 0.01583252,  0.99734504,  0.07107888],
+ [-0.01879476, -0.07077837,  0.99731498]])
+T =  np.array([[-8.11192645],
+ [-0.15830232],
+ [ 0.3807869 ]])
+'''
 print('*'*34)
 print('Camera is setup')
 print('*'*34)
@@ -59,19 +67,24 @@ print(f'Is this the server: {args["server"]}')
 
 
 if args['server']:
-  connection = Server(IP_ADDRESS,PORT=9999)
   print('Waiting for client to connect...')
+  connection = Server(IP_ADDRESS,PORT=9999)
 else:
   connection = Client(IP_ADDRESS,PORT=9999)
 print('*'*34)
 
 ''' Data Tracking '''
 # open the file in write mode
-f = open(f'data_{args["server"]}.csv', 'w',encoding='UTF8', newline='')
+f = open(f'data_person1_{args["server"]}.csv', 'w',encoding='UTF8', newline='')
 # create the csv writer
 writer = csv.writer(f)
 header = ['Time','Pitch','Roll','Yaw','X-Pos','Y-Pos','Z-Pos']
 writer.writerow(header)
+
+f2 = open(f'data_person2_{args["server"]}.csv', 'w',encoding='UTF8', newline='')
+# create the csv writer
+writer2 = csv.writer(f2)
+writer2.writerow(header)
 
 
 
@@ -108,7 +121,7 @@ while True:
     
     # Detect face and nose with helper camera image
     frame0,(_,_,_),nose0=tracker0.headpose(frame0)
-    cv2.imshow('Cam 0', frame0)
+    #cv2.imshow('Cam 0', frame0)
     
     # Estimate pose and detect nose with main camera image
     frame1,(pitch,yaw,roll),nose1=tracker1.headpose(frame1)
@@ -131,11 +144,13 @@ while True:
     print('*'*34)
     # write a row to the csv file
     array = np.rint(np.array([pitch,roll,yaw,x,y,z]))
-    writer.writerow([timestamp,array])
+    writer.writerow([datetime.datetime.now(),timestamp,array])
     connection.send(array.tobytes())
     data_person2 = connection.receive()
     print('Person 2:')
-    print(np.frombuffer(data_person2,dtype=np.float64))
+    array2 = np.frombuffer(data_person2,dtype=np.float64)
+    print(array2)
+    writer2.writerow([datetime.datetime.now(),timestamp,array2])
     print('*'*34)
 
     # Render
@@ -157,6 +172,7 @@ while True:
 ''' Close all '''
 #app.run()
 f.close()
+f2.close()
 cv2.destroyAllWindows()
 cap0.release()
 cap1.release()
