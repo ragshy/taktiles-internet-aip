@@ -68,21 +68,7 @@ else:
   connection = Client(IP_ADDRESS,PORT=9999)
 print('*'*34)
 """
-import socket
-import time
 
-server = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
-server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
-# Enable broadcasting mode
-server.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
-# Set a timeout so the socket does not block
-# indefinitely when trying to receive data.
-server.settimeout(0.2)
-message = np.array([0,1,0,1,1,1,1,0,0,0])
-while True:
-    server.sendto(message, ('<broadcast>', 37020))
-    print("message sent!")
-    time.sleep(1)
 ''' Data Tracking '''
 
 '''Main Loop'''
@@ -123,8 +109,8 @@ while True:
     print('*'*34)
     # write a row to the csv file
     array = np.rint(np.array([pitch,roll,yaw,x,y,z]))
-    connection.send(array.tobytes())
-    data_person2 = connection.receive()
+    #connection.send(array.tobytes())
+    #data_person2 = connection.receive()
     print('*'*34)
 
     # Render
