@@ -1,9 +1,4 @@
 
-'''
-import ursina as US
-from ursina.prefabs.first_person_controller import FirstPersonController
-'''
-
 import cv2
 import csv
 import argparse
@@ -88,24 +83,6 @@ writer2.writerow(header)
 
 
 
-'''Rendering Setup
-
-app = US.Ursina()
-
-US.window.title = 'Room'
-US.window.borderless = False
-US.window.exit_button.visible = True
-US.window.fps_counter.enabled = False
-
-US.mouse.visible = False
-US.mouse.locked = True
-
-ground = US.Entity(model="plane", color = US.color.white, scale=(100, 1, 100), collider="box", position=(0, 0, 0))
-cube = US.Entity(model='cube',position = (0,2,2), color = US.color.red)
-player = FirstPersonController()
-'''
-
-
 '''Main Loop'''
 #Start time
 start = time.time()
@@ -154,17 +131,7 @@ while True:
     print('*'*34)
 
     # Render
-    '''
-    cube.rotation_y += time.dt * 10                 
-    if US.held_keys['up arrow']:                           
-      player.world_position += (0, 0, time.dt*10)           
-    if US.held_keys['down arrow']:                            
-      player.world_position -= (0, 0, time.dt*10) 
-    if US.held_keys['left arrow']:
-      player.world_rotation_y -=time.dt*50
-    if US.held_keys['right arrow']:
-      player.world_rotation_y +=time.dt*50
-    '''
+    
     # Press Q to stop loop
     if cv2.waitKey(1) & 0xFF == ord('q'):
       break
