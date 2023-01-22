@@ -5,9 +5,6 @@ import numpy as np
 from scipy import linalg
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
-import ursina as US
-from ursina.prefabs.first_person_controller import FirstPersonController
-
 import mediapipe as mp
 
 from reference_world import *
@@ -18,36 +15,7 @@ def distance_to_camera(irl_width,focal_length,image_width):
   return (irl_width*focal_length)/image_width
 
 class Renderer():
-  class Render3D():
-    def __init__(self) -> None:
-
-      self.app = US.Ursina()
-
-      US.window.title = 'Room'
-      US.window.borderless = False
-      US.window.exit_button.visible = True
-      US.window.fps_counter.enabled = False
-
-      US.mouse.visible = False
-      US.mouse.locked = True
-
-      self.ground = US.Entity(model="plane", color = US.color.white, scale=(100, 1, 100), collider="box", position=(0, 0, 0))
-      self.cube = US.Entity(model='cube',position = (0,2,2), color = US.color.red)
-      self.player = FirstPersonController()
-      
-    def update(self):
-      # Render
-      self.cube.rotation_y += time.dt * 10                 
-      if US.held_keys['up arrow']:                           
-        self.player.world_position += (0, 0, time.dt*10)           
-      if US.held_keys['down arrow']:                            
-        self.player.world_position -= (0, 0, time.dt*10) 
-      if US.held_keys['left arrow']:
-        self.player.world_rotation_y -=time.dt*50
-      if US.held_keys['right arrow']:
-        self.player.world_rotation_y +=time.dt*50
-      return None
-
+  
   class LiveHeadPosePlots():
     def __init__(self,start) -> None:
       #create subplots and set properties

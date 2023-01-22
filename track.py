@@ -60,28 +60,30 @@ print('*'*34)
 print('*'*34)
 print(f'Is this the server: {args["server"]}')
 
-
+"""
 if args['server']:
   print('Waiting for client to connect...')
   connection = Server(IP_ADDRESS,PORT=9999)
 else:
   connection = Client(IP_ADDRESS,PORT=9999)
 print('*'*34)
+"""
+import socket
+import time
 
+server = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
+server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
+# Enable broadcasting mode
+server.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
+# Set a timeout so the socket does not block
+# indefinitely when trying to receive data.
+server.settimeout(0.2)
+message = np.array([0,1,0,1,1,1,1,0,0,0])
+while True:
+    server.sendto(message, ('<broadcast>', 37020))
+    print("message sent!")
+    time.sleep(1)
 ''' Data Tracking '''
-# open the file in write mode
-f = open(f'data_person1_{args["server"]}.csv', 'w',encoding='UTF8', newline='')
-# create the csv writer
-writer = csv.writer(f)
-header = ['Time','Pitch','Roll','Yaw','X-Pos','Y-Pos','Z-Pos']
-writer.writerow(header)
-
-f2 = open(f'data_person2_{args["server"]}.csv', 'w',encoding='UTF8', newline='')
-# create the csv writer
-writer2 = csv.writer(f2)
-writer2.writerow(header)
-
-
 
 '''Main Loop'''
 #Start time
@@ -121,25 +123,17 @@ while True:
     print('*'*34)
     # write a row to the csv file
     array = np.rint(np.array([pitch,roll,yaw,x,y,z]))
-    writer.writerow([datetime.datetime.now(),timestamp,array])
     connection.send(array.tobytes())
     data_person2 = connection.receive()
-    print('Person 2:')
-    array2 = np.frombuffer(data_person2,dtype=np.float64)
-    print(array2)
-    writer2.writerow([datetime.datetime.now(),timestamp,array2])
     print('*'*34)
 
     # Render
-    
+
     # Press Q to stop loop
     if cv2.waitKey(1) & 0xFF == ord('q'):
       break
 
 ''' Close all '''
-#app.run()
-f.close()
-f2.close()
 cv2.destroyAllWindows()
 cap0.release()
 cap1.release()
