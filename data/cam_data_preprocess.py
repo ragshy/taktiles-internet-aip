@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+import datetime
 
 df1 = pd.read_csv(r'/Users/noor/taktiles-internet-aip/data/cam_data_raw/sc4_data_person1_True.csv')
 df2 = pd.read_csv(r'/Users/noor/taktiles-internet-aip/data/cam_data_raw/sc4_data_person2_True.csv')
@@ -46,8 +47,14 @@ df_angle_pos2 = pd.DataFrame(data=vec2.to_list(), columns=['Pitch','Roll', 'Yaw'
 df1[['Pitch','Roll', 'Yaw', 'X-Pos', 'Y-Pos', 'Z-Pos']] = df_angle_pos1
 df2[['Pitch','Roll', 'Yaw', 'X-Pos', 'Y-Pos', 'Z-Pos']] = df_angle_pos2
 
-print(df1)
-print(df2)
+#print(df1)
+#print(df2)
 
 df1.to_csv('sc4_data_person1_preprocessed.csv')
 df2.to_csv('sc4_data_person2_preprocessed.csv')
+
+""" #timestamp = df1.loc[5,"Time"]
+timestamp = '2023-01-18 19:25:15.713018'
+ts_conv = datetime.datetime.strptime(timestamp, '%Y-%m-%d %H:%M:%S:%f')
+print(type(timestamp))
+print(timestamp) """
