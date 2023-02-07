@@ -45,7 +45,7 @@ Setup for 2 Users:
     ```
     python track.py
     ```
-    ! Make sure that track.py has the correct IP-Adress (see line 16) of the server device
+    ! Make sure that track.py has the correct IP-Adress (see line 17) of the server device
 
 ## Files and Folders descriptions:
   - ### /Camera_Calibration:
