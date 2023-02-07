@@ -13,6 +13,7 @@ parser = argparse.ArgumentParser(description='A Person Tracking system')
 parser.add_argument("-s", "--server", help = "Run script as Server or Client", action='store_true')
 args = vars(parser.parse_args())
 
+# INTERNET CONNECTION
 IP_ADDRESS = '172.20.10.2'
 print('*'*34)
 print(f'The Program is starting... The IP Address is: {IP_ADDRESS}')
@@ -20,7 +21,7 @@ print('*'*34)
 
 '''Camera Setup'''
 # First (HELP) Camera
-cap0 = cv2.VideoCapture(1)
+cap0 = cv2.VideoCapture(1) #make sure camera id is correct
 focal_length = 1553.0
 cam0 = np.array([[focal_length, 0, 986],
                   [0, focal_length, 499],
@@ -29,7 +30,7 @@ dist0 = np.array([0.1525,-1.022,-0.00287,0.000317,1.172])
 tracker0 = Tracker(camera_mat=cam0,distortion_mat=dist0)
 
 # Second (MAIN) Camera
-cap1 = cv2.VideoCapture(2)
+cap1 = cv2.VideoCapture(2) #make sure camera id is correct
 cam1 = np.array([[focal_length, 0, 986],
                   [0, focal_length, 499],
                   [0, 0, 1]])
@@ -60,21 +61,20 @@ print('*'*34)
 print('*'*34)
 print(f'Is this the server: {args["server"]}')
 
-"""
+
 if args['server']:
   print('Waiting for client to connect...')
   connection = Server(IP_ADDRESS,PORT=9999)
 else:
+  print('Waiting for server to start...')
   connection = Client(IP_ADDRESS,PORT=9999)
 print('*'*34)
-"""
 
 ''' Data Tracking '''
 
 '''Main Loop'''
 #Start time
 start = time.time()
-#def update():
 while True:
     # Capture 2 frames
     ret0, frame0 = cap0.read()
@@ -107,11 +107,11 @@ while True:
     print('Pitch, Roll, Yaw: ',pitch,roll,yaw)
     print('X,Y,Z Coordinates: ',x,y,z)
     print('*'*34)
-    # write a row to the csv file
+    # TCP send and receive data
     array = np.rint(np.array([pitch,roll,yaw,x,y,z]))
-    #connection.send(array.tobytes())
-    #data_person2 = connection.receive()
     print('*'*34)
+    connection.send(array.tobytes())
+    data_person2 = connection.receive()
 
     # Render
 

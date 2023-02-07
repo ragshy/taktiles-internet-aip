@@ -2,6 +2,9 @@ import socket
 
 
 class Server():
+  """ class that holds the TCP server that sends data (angles,position) to other user (client) 
+  and receives data from the client
+  """
   def __init__(self,HOST="localhost", PORT =  9999) -> None:
     self.HOST = HOST
     self.PORT = PORT
@@ -19,6 +22,9 @@ class Server():
 
 
 class Client():
+  """ class that holds the TCP client that sends data (angles,position) to other user (server) 
+  and receives data from the server
+  """
   def __init__(self,HOST="localhost", PORT =  9999) -> None:
     self.HOST = HOST
     self.PORT = PORT
